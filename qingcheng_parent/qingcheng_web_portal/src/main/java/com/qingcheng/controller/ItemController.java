@@ -78,6 +78,10 @@ public class ItemController {
             dataModel.put("paraItems", paraItems);//参数列表
             Map specItems = JSON.parseObject(sku.getSpec());//规格列表
             dataModel.put("specItems", specItems);
+            //规格选择面板
+            // {"颜色":["白色","红色","黑色","蓝色"],"选择套装":["官方标配","碎屏无忧套装","原装壳套装"],"版本":["6GB+128GB","4GB+64GB","6GB+64GB"]}
+            Map<String,List> specMap = (Map) JSON.parseObject(spu.getSpecItems());//规格和规格选项
+            dataModel.put("specMap", specMap);
             context.setVariables(dataModel);
             //创建文件
             File dir = new File(pagePath);
