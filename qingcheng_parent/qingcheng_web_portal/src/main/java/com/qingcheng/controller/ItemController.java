@@ -1,6 +1,8 @@
 package com.qingcheng.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.qingcheng.pojo.goods.Goods;
 import com.qingcheng.pojo.goods.Sku;
 import com.qingcheng.pojo.goods.Spu;
@@ -72,6 +74,10 @@ public class ItemController {
             dataModel.put("categoryList", categoryList);
             dataModel.put("skuImages",sku.getImages().split(","));//sku图片列表
             dataModel.put("spuImages",sku.getImages().split(","));//spu图片列表
+            Map  paraItems = JSON.parseObject(spu.getParaItems());
+            dataModel.put("paraItems", paraItems);//参数列表
+            Map specItems = JSON.parseObject(sku.getSpec());//规格列表
+            dataModel.put("specItems", specItems);
             context.setVariables(dataModel);
             //创建文件
             File dir = new File(pagePath);
