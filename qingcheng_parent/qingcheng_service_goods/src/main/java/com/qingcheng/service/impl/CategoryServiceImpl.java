@@ -130,7 +130,7 @@ public class CategoryServiceImpl implements CategoryService {
     private List<Map> findByParentId(List<Category> categoryList,Integer parentId) {
         List<Map> mapList = new ArrayList<Map>();
         for (Category category : categoryList) {
-            if (category.getId().equals(parentId)) {
+            if (category.getParentId().equals(parentId)) {//判断此类的 parentId 与传进来的 parentId 是否相等
                 Map map = new HashMap();
                 map.put("name", category.getName());
                 map.put("menus", findByParentId(categoryList, category.getId()));
