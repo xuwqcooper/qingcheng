@@ -16,9 +16,7 @@
           <element id="library" level="project" name="Maven: javax.persistence:persistence-api:1.0" />
           <element id="library" level="project" name="Maven: com.github.pagehelper:pagehelper:4.1.4" />
           <element id="library" level="project" name="Maven: com.github.jsqlparser:jsqlparser:0.9.5" />
-          <element id="archive" name="qingcheng_common_web-1.0-SNAPSHOT.jar">
-            <element id="module-output" name="qingcheng_common_web" />
-          </element>
+          <element id="library" level="project" name="Maven: com.qingcheng:qingcheng_common_web:1.0-SNAPSHOT" />
           <element id="archive" name="qingcheng_common-1.0-SNAPSHOT.jar">
             <element id="module-output" name="qingcheng_common" />
           </element>

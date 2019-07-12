@@ -9,6 +9,8 @@ import com.qingcheng.service.goods.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -103,6 +105,39 @@ public class CategoryServiceImpl implements CategoryService {
             throw new RuntimeException("存在下级分类不能删除");
         }
         categoryMapper.deleteByPrimaryKey(id);
+    }
+
+    /**
+     * 查询分类(树形结构)
+     * @return
+     */
+    public List<Map> findCategoryTree() {
+        //根据条件查询 条件为是否显示
+        Example example = new Example(Category.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("isShow", "1");//显示
+        example.setOrderByClause("seq");//按照顺序排序
+        List<Category> categoryList = categoryMapper.selectByExample(example);
+       return findByParentId(categoryList, 0);
+    }
+
+    /**
+     * 递归的方法 查询整个category
+     * @param categoryList
+     * @param parentId
+     * @return
+     */
+    private List<Map> findByParentId(List<Category> categoryList,Integer parentId) {
+        List<Map> mapList = new ArrayList<Map>();
+        for (Category category : categoryList) {
+            if (category.getId().equals(parentId)) {
+                Map map = new HashMap();
+                map.put("name", category.getName());
+                map.put("menus", findByParentId(categoryList, category.getId()));
+                mapList.add(map);
+            }
+        }
+        return mapList;
     }
 
     /**

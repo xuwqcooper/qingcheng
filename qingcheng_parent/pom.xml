@@ -19,7 +19,6 @@
         <module>qingcheng_interface</module>
         <module>qingcheng_web_manager</module>
         <module>qingcheng_common_service</module>
-        <module>qingcheng_common_web</module>
     </modules>
 
     <packaging>pom</packaging>
