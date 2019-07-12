@@ -56,9 +56,9 @@ public class ItemController {
         Spu spu = goods.getSpu();
         //获取各级分类名称
         List<String> categoryList = new ArrayList<>();
-        categoryList.add(categoryService.findById(spu.getCategory1Id()).getName());
-        categoryList.add(categoryService.findById(spu.getCategory2Id()).getName());
-        categoryList.add(categoryService.findById(spu.getCategory3Id()).getName());
+        categoryList.add(categoryService.findById(spu.getCategory1Id()).getName());//一级分类名称
+        categoryList.add(categoryService.findById(spu.getCategory2Id()).getName());//二级分类名称
+        categoryList.add(categoryService.findById(spu.getCategory3Id()).getName());//三级分类名称
 
         //获取skuList
         List<Sku> skuList = goods.getSkuList();
@@ -70,6 +70,8 @@ public class ItemController {
             dataModel.put("spu", spu);
             dataModel.put("sku", sku);
             dataModel.put("categoryList", categoryList);
+            dataModel.put("skuImages",sku.getImages().split(","));//sku图片列表
+            dataModel.put("spuImages",sku.getImages().split(","));//spu图片列表
             context.setVariables(dataModel);
             //创建文件
             File dir = new File(pagePath);
