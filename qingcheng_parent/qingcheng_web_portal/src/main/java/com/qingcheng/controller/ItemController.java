@@ -3,6 +3,7 @@ package com.qingcheng.controller;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.qingcheng.pojo.goods.Goods;
 import com.qingcheng.pojo.goods.Sku;
 import com.qingcheng.pojo.goods.Spu;
@@ -14,12 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +62,7 @@ public class ItemController {
 
         //获取skuList
         List<Sku> skuList = goods.getSkuList();
+        Map urlMap = new HashMap();//添加一个url的map集合 键值对
         for (Sku sku : skuList) {
             //创建上下文
             Context context = new Context();
@@ -78,6 +77,9 @@ public class ItemController {
             dataModel.put("paraItems", paraItems);//参数列表
             Map<String,String> specItems = (Map) JSON.parseObject(sku.getSpec());//规格列表
             dataModel.put("specItems", specItems);
+            //对json的规格字符串进行排序
+            String specJson = JSON.toJSONString(JSON.parseObject(sku.getSpec()), SerializerFeature.MapSortField);
+            urlMap.put(specJson, sku.getId() + ".html");
             //规格选择面板
             // {"颜色":["白色","红色","黑色","蓝色"],"选择套装":["官方标配","碎屏无忧套装","原装壳套装"],"版本":["6GB+128GB","4GB+64GB","6GB+64GB"]}
             Map<String,List> specMap = (Map) JSON.parseObject(spu.getSpecItems());//规格和规格选项
@@ -94,6 +96,12 @@ public class ItemController {
                     } else {
                         map.put("checked", false);//是否选中
                     }
+                    Map spec = JSON.parseObject(sku.getSpec());//获取当前sku的规格
+                    //只是为了制造一个key值获取urlMap的value 地址值
+                    spec.put(key, value);
+                    //获取当前的sku的字符串规格,同82行,作为获取地址的key
+                    String specJson1 = JSON.toJSONString(spec, SerializerFeature.MapSortField);
+                    map.put("url", urlMap.get(specJson1));
                     mapList.add(map);
                 }
                 specMap.put(key, mapList);//用新的集合替换原来的集合

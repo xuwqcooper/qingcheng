@@ -1908,7 +1908,7 @@
 									</div>
 								</dt>
 								<dd th:each="specValue:${spec.value}">
-									<a href="javascript:;" th:class="${specValue.checked?'selected':''}" >
+									<a th:href="${specValue.url}" th:class="${specValue.checked?'selected':''}" >
 										<i th:text="${specValue.option}" ></i>
 										<span title="点击取消选择">&nbsp;</span>
 									</a>
@@ -2133,7 +2133,7 @@
 						<ul class="sui-nav nav-tabs tab-wraped">
 							<li class="active">
 								<a href="#one" data-toggle="tab" >
-
+									<span>商品介绍</span>
 								</a>
 							</li>
 							<li>
@@ -2168,9 +2168,7 @@
 								<ul class="goods-intro unstyled" >
 									<li th:each="specItem:${specItems}" th:text="${specItem.key+':' + specItem.value}"></li>
 								</ul>
-								<div class="intro-detail" th:utext="${spu.introduction}">
-
-								</div>
+								<div class="intro-detail" th:utext="${spu.introduction}"></div>
 							</div>
 							<div id="two" class="tab-pane">
 								<p>规格与包装</p>
