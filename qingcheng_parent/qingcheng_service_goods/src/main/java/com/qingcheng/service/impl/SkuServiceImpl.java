@@ -129,6 +129,23 @@ public class SkuServiceImpl implements SkuService {
     }
 
     /**
+     * 保存价格到缓存
+     * @param id
+     * @param price
+     */
+    public void savePriceToRedisById(String id, Integer price) {
+        redisTemplate.boundHashOps(CacheKey.SKU_PRICE).put(id, price);
+    }
+
+    /**
+     * 根据id删除缓存中的价格
+     * @param id
+     */
+    public void deletePriceFromRedis(String id) {
+        redisTemplate.boundHashOps(CacheKey.SKU_PRICE).delete(id);
+    }
+
+    /**
      * 构建查询条件
      * @param searchMap
      * @return

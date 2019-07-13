@@ -9,6 +9,7 @@ import com.qingcheng.dao.SkuMapper;
 import com.qingcheng.dao.SpuMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.goods.*;
+import com.qingcheng.service.goods.SkuService;
 import com.qingcheng.service.goods.SpuService;
 import com.qingcheng.util.IdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +18,7 @@ import tk.mybatis.mapper.entity.Example;
 
 import javax.persistence.Table;
 import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service(interfaceClass = SpuService.class)
 public class SpuServiceImpl implements SpuService {
@@ -39,6 +37,9 @@ public class SpuServiceImpl implements SpuService {
 
     @Autowired
     private CategotyBrandMapper categotyBrandMapper;
+
+    @Autowired
+    private SkuService skuService;
 
 
     /**
@@ -77,7 +78,6 @@ public class SpuServiceImpl implements SpuService {
                 sku.setCreateTime(date);//创建日期
             }
             sku.setSpuId(spu.getId());
-
             //不启用规格的spu
             if (sku.getSpec() == null || "".equals(sku.getSpec())) {
                 sku.setSpec("{}");
@@ -96,6 +96,9 @@ public class SpuServiceImpl implements SpuService {
             sku.setCommentNum(0);//评论数
             sku.setSaleNum(0);//销售数
             skuMapper.insert(sku);
+            //更新到redis
+            skuService.savePriceToRedisById(sku.getId(),sku.getPrice());
+
         }
         //建立分类和品牌的关联
         CategotyBrand categotyBrand = new CategotyBrand();
@@ -214,12 +217,29 @@ public class SpuServiceImpl implements SpuService {
      * @param id
      */
     public void dele(String id) {
-        Spu spu = new Spu();
+        //获取spu
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        //修改逻辑删除状态
         spu.setIsDelete("1");
-        Example example = new Example(Spu.class);
-        Example.Criteria criteria = example.createCriteria();
-        criteria.andEqualTo("id", id);
-        spuMapper.updateByExampleSelective(spu, example);
+        //从缓存中删除价格
+        Map map = new HashMap();
+        map.put("spuId", id);
+        List<Sku> skuList = skuService.findList(map);
+        for (Sku sku : skuList) {
+            skuService.deletePriceFromRedis(sku.getId());
+        }
+        //更新状态
+        spuMapper.updateByPrimaryKeySelective(spu);
+        //sku列表的删除
+        Example example = new Example(Sku.class);
+        Example.Criteria criteria1 = example.createCriteria();
+        criteria1.andEqualTo("spuId", id);
+        List<Sku> skus = skuMapper.selectByExample(example);
+        for (Sku sku : skus) {
+            sku.setStatus("3");
+            //更新
+            skuMapper.updateByExampleSelective(sku, example);
+        }
 
     }
 
