@@ -28,7 +28,7 @@ public class IndexController {
     @RequestMapping("/index")
     public String index(Model model) {
         //查询出轮播图的集合
-        List<Ad> lbtList = adService.findByPositon("index_lb");
+        List<Ad> lbtList = adService.findByPosition("index_lb");
         //添加到动态渲染
         model.addAttribute("lbt", lbtList);
 
