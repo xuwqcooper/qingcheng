@@ -32,4 +32,14 @@ public interface SkuService {
 
     public void delete(String id);
 
+    /**
+     * 保存所有的价格到redis
+     */
+    public void saveAllPriceToRedis();
+
+    /**
+     * 根据id查询sku的价格数据
+     * @param id
+     */
+    public Integer findPrice(String id);
 }

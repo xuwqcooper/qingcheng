@@ -6,7 +6,9 @@ import com.qingcheng.dao.SkuMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.goods.Sku;
 import com.qingcheng.service.goods.SkuService;
+import com.qingcheng.util.CacheKey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
@@ -93,6 +95,37 @@ public class SkuServiceImpl implements SkuService {
      */
     public void delete(String id) {
         skuMapper.deleteByPrimaryKey(id);
+    }
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+    /**
+     * 保存所有的价格到redis缓存
+     */
+    public void saveAllPriceToRedis() {
+        List<Sku> skuList = skuMapper.selectAll();
+        //检查缓存中是否已经添加价格数据
+        if (!redisTemplate.hasKey(CacheKey.SKU_PRICE)) {
+            System.out.println("加载全部的价格数据");
+            for (Sku sku : skuList) {
+                //将每个查询出来的sku的id 和 price 添加到缓存
+                if ("1".equals(sku.getStatus())) {//判断商品的状态是否下架 不下架添加到缓存
+                    redisTemplate.boundHashOps(CacheKey.SKU_PRICE).put(sku.getId(), sku.getPrice());
+                } else {
+                    System.out.println("数据已经存在,不用加载");
+                }
+            }
+        }
+    }
+
+    /**
+     * 根据id查询sku的价格
+     * @param id
+     */
+    public Integer findPrice(String id) {
+        //从缓存中查询
+        return (Integer) redisTemplate.boundHashOps(CacheKey.SKU_PRICE).get(id);
+
     }
 
     /**
