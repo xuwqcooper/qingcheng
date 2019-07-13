@@ -1908,7 +1908,7 @@
 									</div>
 								</dt>
 								<dd th:each="specValue:${spec.value}">
-									<a th:href="${specValue.url}" th:class="${specValue.checked?'selected':''}" >
+									<a th:href="${specValue.url}" th:class="${specValue.url==null? 'locked': (specValue.checked?'selected':'')}" >
 										<i th:text="${specValue.option}" ></i>
 										<span title="点击取消选择">&nbsp;</span>
 									</a>

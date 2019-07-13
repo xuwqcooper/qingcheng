@@ -78,8 +78,10 @@ public class ItemController {
             Map<String,String> specItems = (Map) JSON.parseObject(sku.getSpec());//规格列表
             dataModel.put("specItems", specItems);
             //对json的规格字符串进行排序
-            String specJson = JSON.toJSONString(JSON.parseObject(sku.getSpec()), SerializerFeature.MapSortField);
-            urlMap.put(specJson, sku.getId() + ".html");
+            if ("1".equals(sku.getStatus())) {
+                String specJson = JSON.toJSONString(JSON.parseObject(sku.getSpec()), SerializerFeature.MapSortField);
+                urlMap.put(specJson, sku.getId() + ".html");
+            }
             //规格选择面板
             // {"颜色":["白色","红色","黑色","蓝色"],"选择套装":["官方标配","碎屏无忧套装","原装壳套装"],"版本":["6GB+128GB","4GB+64GB","6GB+64GB"]}
             Map<String,List> specMap = (Map) JSON.parseObject(spu.getSpecItems());//规格和规格选项
