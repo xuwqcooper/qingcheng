@@ -120,8 +120,11 @@
 											<dt>
 												<a href="" th:text="${category2.name}"></a>
 											</dt>
-											<dd th:each="category3:${category2.menus}">
-												<a href="" th:text="${category3.name}">免费</a>
+											<dd >
+												<em th:each="category3:${category2.menus}">
+													<a href="" th:text="${category3.name}"></a>
+												</em>
+
 											</dd>
 										</dl>
 									</div>

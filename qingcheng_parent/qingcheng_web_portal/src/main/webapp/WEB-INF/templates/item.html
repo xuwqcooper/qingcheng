@@ -1904,12 +1904,12 @@
 							<dl th:each="spec:${specMap}">
 								<dt>
 									<div class="fl title" >
-										<i th:text="${spec.key}">选择颜色</i>
+										<i th:text="${spec.key}"></i>
 									</div>
 								</dt>
 								<dd th:each="specValue:${spec.value}">
-									<a href="javascript:;" class="selected" >
-										<i th:text="${specValue}" ></i>
+									<a href="javascript:;" th:class="${specValue.checked?'selected':''}" >
+										<i th:text="${specValue.option}" ></i>
 										<span title="点击取消选择">&nbsp;</span>
 									</a>
 								</dd>

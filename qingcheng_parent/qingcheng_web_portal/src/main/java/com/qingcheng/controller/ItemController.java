@@ -76,11 +76,28 @@ public class ItemController {
             dataModel.put("spuImages",sku.getImages().split(","));//spu图片列表
             Map  paraItems = JSON.parseObject(spu.getParaItems());
             dataModel.put("paraItems", paraItems);//参数列表
-            Map specItems = JSON.parseObject(sku.getSpec());//规格列表
+            Map<String,String> specItems = (Map) JSON.parseObject(sku.getSpec());//规格列表
             dataModel.put("specItems", specItems);
             //规格选择面板
             // {"颜色":["白色","红色","黑色","蓝色"],"选择套装":["官方标配","碎屏无忧套装","原装壳套装"],"版本":["6GB+128GB","4GB+64GB","6GB+64GB"]}
             Map<String,List> specMap = (Map) JSON.parseObject(spu.getSpecItems());//规格和规格选项
+            for (String key : specMap.keySet()) {
+            //{"颜色":[{"'option','白色';'checked','true'"},"红色","黑色","蓝色"]
+                List<String> list = specMap.get(key);
+                List<Map> mapList = new ArrayList<>();//创建新的集合
+                //循环规格选项
+                for (String value : list) {
+                    Map map = new HashMap();
+                    map.put("option", value);//规格选项
+                    if (value.equals(specItems.get(key))) {//如果和当前的sku的规格相同就选中
+                        map.put("checked", true);//是否选中
+                    } else {
+                        map.put("checked", false);//是否选中
+                    }
+                    mapList.add(map);
+                }
+                specMap.put(key, mapList);//用新的集合替换原来的集合
+            }
             dataModel.put("specMap", specMap);
             context.setVariables(dataModel);
             //创建文件
