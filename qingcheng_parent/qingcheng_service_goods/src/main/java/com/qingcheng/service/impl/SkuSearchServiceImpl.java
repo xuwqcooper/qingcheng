@@ -1,6 +1,7 @@
 package com.qingcheng.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.qingcheng.dao.BrandMapper;
 import com.qingcheng.service.goods.SkuSearchService;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -37,6 +38,9 @@ public class SkuSearchServiceImpl implements SkuSearchService {
     @Autowired
     private RestHighLevelClient restHighLevelClient;
 
+    @Autowired
+    private BrandMapper brandMapper;
+
     /**
      * 查询
      * @param searchMap
@@ -48,17 +52,25 @@ public class SkuSearchServiceImpl implements SkuSearchService {
         SearchRequest searchRequest = new SearchRequest("sku");//相当于从哪个索引库查询
         searchRequest.types("doc");//查询的类型 (相当于数据库中表)
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();//相当于得一个{}
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();//布尔查询条件 构造器
 
         //1.1关键字查询
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();//布尔查询条件 构造器
-        MatchQueryBuilder matchQueryBuilder = QueryBuilders.matchQuery("name", searchMap.get("keywords"));//match条件
-        queryBuilder.must(matchQueryBuilder);//将match查询添加到bool查询
+
+            MatchQueryBuilder matchQueryBuilder = QueryBuilders.matchQuery("name", searchMap.get("keywords"));//match条件
+            queryBuilder.must(matchQueryBuilder);//将match查询添加到bool查询
+
 
         //商品分类(聚合查询)
         TermsAggregationBuilder termsAggregationBuilder = AggregationBuilders.terms("sku_category").field("categoryName");
-        //商品分类过滤
+        //1.2商品分类过滤
         if (searchMap.get("category") != null) {//判断map中的category是否有值 没有值执行以下操作
             TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery("categoryName", searchMap.get("category"));
+            queryBuilder.must(termQueryBuilder);
+        }
+
+        //1.3品牌分类
+        if (searchMap.get("brand") != null) {//判断查询条件中 是否有品牌 如果有 就进行查询
+            TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery("brandName", searchMap.get("brand"));
             queryBuilder.must(termQueryBuilder);
         }
 
@@ -93,6 +105,23 @@ public class SkuSearchServiceImpl implements SkuSearchService {
                 categoryList.add(bucket.getKeyAsString());
             }
             resultMap.put("categoryList", categoryList);//添加到返回的map中
+
+            //2.3品牌分类列表
+            if (searchMap.get("brand") == null) {//如果没有brand的值
+                String categoryName = "";
+                if (searchMap.get("category") == null) {//判断查询条件里是否有分类名称 如果没有代表没有查询 品牌列表显示为第一个
+                    if (categoryList.size() > 0) {
+                        categoryName = categoryList.get(0);//获取第一个分类名称
+                    } else {
+                        categoryName = searchMap.get("category");//选取了 就选取当前分类名称
+                    }
+                }
+                List<Map> brandList = brandMapper.findListByCategoryName(categoryName);//返回按照分类名称查询出来的品牌列表
+                resultMap.put("brandList", brandList);
+            }
+
+
+
 
 
         } catch (IOException e) {
