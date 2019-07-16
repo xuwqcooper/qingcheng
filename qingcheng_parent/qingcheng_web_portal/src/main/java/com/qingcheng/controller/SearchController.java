@@ -29,11 +29,14 @@ public class SearchController {
         //远程调用接口
         Map result = skuSearchService.serch(searchMap);
         model.addAttribute("result", result);
-        StringBuffer url = new StringBuffer("/search.do");
+        //url处理
+        StringBuffer url = new StringBuffer("/search.do?");
         for (String key : searchMap.keySet()) {
             url.append("&" + key + "=" + searchMap.get(key));
         }
         model.addAttribute("url", url);
+        model.addAttribute("searchMap", searchMap);
+
         return "search";
 
 
