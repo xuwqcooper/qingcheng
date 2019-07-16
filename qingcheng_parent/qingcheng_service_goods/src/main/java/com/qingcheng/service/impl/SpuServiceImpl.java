@@ -57,7 +57,6 @@ public class SpuServiceImpl implements SpuService {
             //保存spu
             spuMapper.insert(spu);
         } else {
-
             //删除sku
             Example example = new Example(Sku.class);
             Example.Criteria criteria = example.createCriteria();
@@ -224,8 +223,10 @@ public class SpuServiceImpl implements SpuService {
         //从缓存中删除价格
         Map map = new HashMap();
         map.put("spuId", id);
+        // 根据条件查询
         List<Sku> skuList = skuService.findList(map);
         for (Sku sku : skuList) {
+            //根据id从缓存中删除价格
             skuService.deletePriceFromRedis(sku.getId());
         }
         //更新状态
@@ -233,9 +234,11 @@ public class SpuServiceImpl implements SpuService {
         //sku列表的删除
         Example example = new Example(Sku.class);
         Example.Criteria criteria1 = example.createCriteria();
+        //查询条件
         criteria1.andEqualTo("spuId", id);
         List<Sku> skus = skuMapper.selectByExample(example);
         for (Sku sku : skus) {
+            //设置sku的状态为删除"3"
             sku.setStatus("3");
             //更新
             skuMapper.updateByExampleSelective(sku, example);

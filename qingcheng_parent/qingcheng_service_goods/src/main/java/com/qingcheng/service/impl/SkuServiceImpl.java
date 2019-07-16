@@ -1,5 +1,6 @@
 package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.qingcheng.dao.SkuMapper;
@@ -7,10 +8,26 @@ import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.goods.Sku;
 import com.qingcheng.service.goods.SkuService;
 import com.qingcheng.util.CacheKey;
+import org.apache.http.HttpHost;
+import org.elasticsearch.action.ActionListener;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import tk.mybatis.mapper.entity.Example;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -143,6 +160,104 @@ public class SkuServiceImpl implements SkuService {
      */
     public void deletePriceFromRedis(String id) {
         redisTemplate.boundHashOps(CacheKey.SKU_PRICE).delete(id);
+    }
+
+    /**
+     * 导入索引库
+     */
+    public void importToEs() {
+        System.out.println("开始连接索引库");
+        //连接rest接口
+        HttpHost host = new HttpHost("127.0.0.1",9200,"http");
+        RestClientBuilder restClientBuilder = RestClient.builder(host);//rest构建器
+        RestHighLevelClient restHighLevelClient = new RestHighLevelClient(restClientBuilder);//高级客户端连接
+        //判断索引数据是否已经导入
+        if (countEs(restHighLevelClient )>0) {
+            System.out.println("已存在索引数据");
+            return;
+        }
+        System.out.println("开始准备索引库数据");
+        Map map = new HashMap();
+        map.put("status", 1);
+        int pageNo = 1;
+        while (true) {
+            System.out.println("page:"+pageNo);
+            PageResult page = findPage(map, pageNo, 1000);
+            List<Sku> skuList = page.getRows();
+            if (skuList.size() > 0) {
+                importSkuListToEs(restHighLevelClient, skuList);
+            } else {
+                break;
+            }
+            pageNo++;
+        }
+        System.out.println("索引库导入完成");
+
+    }
+
+    /**
+     * 记录当前数据条数
+     * @param restHighLevelClient
+     * @return
+     */
+    private Long countEs(RestHighLevelClient restHighLevelClient) {
+        //封装查询请求
+        SearchRequest searchRequest = new SearchRequest("sku");
+        searchRequest.types("doc");//设置查询类型
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();//查询所有
+        searchRequest.source(searchSourceBuilder);
+        //获取查询结果
+        SearchResponse searchResponse = null;
+        try {
+            searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return -1L;
+        }
+        SearchHits searchHits = searchResponse.getHits();
+        long totalHits = searchHits.getTotalHits();
+        System.out.println("总记录数:" + totalHits);
+        return totalHits;
+    }
+
+    /**
+     * 将sku列表导入索引库
+     * @param restHighLevelClient
+     * @param skuList
+     */
+    private void importSkuListToEs(RestHighLevelClient restHighLevelClient,List<Sku> skuList) {
+        //构建bulkRequest 便于批量导入
+        BulkRequest bulkRequest = new BulkRequest();
+        for (Sku sku : skuList) {
+            IndexRequest indexRequest = new IndexRequest("sku", "doc", sku.getId().toString());
+            //设置值
+            Map skuMap=new HashMap();
+            skuMap.put("name",sku.getName());
+            skuMap.put("brandName",sku.getBrandName());
+            skuMap.put("categoryName",sku.getCategoryName());
+            skuMap.put("image",sku.getImage());
+            skuMap.put("price",sku.getPrice());
+            skuMap.put("createTime",sku.getCreateTime());
+            skuMap.put("saleNum",sku.getSaleNum());
+            skuMap.put("commentNum",sku.getCommentNum());
+            skuMap.put("spec", JSON.parseObject(sku.getSpec(),Map.class) );//直接转成map集合
+            indexRequest.source(skuMap);
+            bulkRequest.add(indexRequest);
+        }
+        System.out.println("开始导入索引库");
+        //异步调用方式
+        restHighLevelClient.bulkAsync(bulkRequest, RequestOptions.DEFAULT, new ActionListener<BulkResponse>() {
+            public void onResponse(BulkResponse bulkItemResponses) {
+                //成功
+                System.out.println("导入成功"+ bulkItemResponses.status());
+            }
+
+            public void onFailure(Exception e) {
+                e.printStackTrace();
+                System.out.println("导入失败"+e.getMessage());
+            }
+        });
+        System.out.println("导入成功");
     }
 
     /**

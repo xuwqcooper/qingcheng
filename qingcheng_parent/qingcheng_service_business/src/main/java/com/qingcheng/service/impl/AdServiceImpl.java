@@ -98,6 +98,12 @@ public class AdServiceImpl implements AdService {
         if (!position.equals(ad.getPosition())) {
             sendAdToRedisByPosition(ad.getPosition());
         }
+
+        /*if (position.equals(ad.getPosition())) {//如果更新以后的position相同
+            sendAdToRedisByPosition(position);
+        } else {//更新后的position与之前的不相同
+            sendAdToRedisByPosition(ad.getPosition());
+        } */
     }
 
     /**
@@ -163,6 +169,16 @@ public class AdServiceImpl implements AdService {
      */
     private List<String> getPositionList() {
         List<String> positionList = new ArrayList<String>();
+       /* //查询所有的ad
+        List<Ad> adList = adMapper.selectAll();
+        for (Ad ad : adList) {
+            //获取每个ad的position
+            String position = ad.getPosition();
+            if (!positionList.contains(position)) {
+                //添加不存在的position
+                positionList.add(position);
+            }
+        }*/
         positionList.add("index_lb");//首页广告轮播图
         return positionList;
     }

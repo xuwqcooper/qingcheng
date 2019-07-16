@@ -55,4 +55,9 @@ public interface SkuService {
      * @param id
      */
     public void deletePriceFromRedis(String id);
+
+    /**
+     * 导入索引库
+     */
+    public void importToEs();
 }
