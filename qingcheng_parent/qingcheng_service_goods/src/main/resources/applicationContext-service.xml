@@ -12,7 +12,7 @@
 	</bean>
 
 	<!--es client-->
-	<bean id="restHighLeveClient" class="com.qingcheng.service.impl.RestClientFactory" factory-method="getRestHighLevelClient">
+	<bean id="restHighLevelClient" class="com.qingcheng.service.impl.RestClientFactory" factory-method="getRestHighLevelClient">
 		<constructor-arg index="0" value="127.0.0.1"></constructor-arg>
 		<constructor-arg index="1" value="9200"></constructor-arg>
 	</bean>
