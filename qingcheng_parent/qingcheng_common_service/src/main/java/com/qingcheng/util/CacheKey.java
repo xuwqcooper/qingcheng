@@ -10,5 +10,7 @@ public enum CacheKey {
     AD,//广告
     SKU_PRICE,//价格
     CATEGORY_TREE,//商品分类的导航
+    BRAND_LIST,//品牌名称
+    SPEC_LIST,//规格列表
 
 }

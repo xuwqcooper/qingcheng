@@ -32,4 +32,9 @@ public interface SpecService {
 
     public void delete(Integer id);
 
+    /**
+     * 将规格存入缓存预热
+     */
+    public void saveSpecToRedis();
+
 }

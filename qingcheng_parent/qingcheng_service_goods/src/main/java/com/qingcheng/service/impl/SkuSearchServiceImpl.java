@@ -6,6 +6,7 @@ import com.qingcheng.dao.SpecMapper;
 import com.qingcheng.pojo.goods.Template;
 import com.qingcheng.service.goods.SkuSearchService;
 import com.qingcheng.service.goods.SpecService;
+import com.qingcheng.util.CacheKey;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -20,6 +21,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,6 +45,9 @@ public class SkuSearchServiceImpl implements SkuSearchService {
 
     @Autowired
     private SpecMapper specMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 查询
@@ -142,11 +147,13 @@ public class SkuSearchServiceImpl implements SkuSearchService {
             }
             //2.3品牌列表
             if (searchMap.get("brand") == null) {//如果没有brand的值
-                List<Map> brandList = brandMapper.findListByCategoryName(categoryName);//返回按照分类名称查询出来的品牌列表
+                //List<Map> brandList = brandMapper.findListByCategoryName(categoryName);//返回按照分类名称查询出来的品牌列表
+                List<Map> brandList = (List<Map>)redisTemplate.boundHashOps(CacheKey.BRAND_LIST).get(categoryName);
                 resultMap.put("brandList", brandList);
             }
             //2.4规格列表
-            List<Map> specList = specMapper.findListByCategoryName(categoryName);//获得规格参数列表
+            //List<Map> specList = specMapper.findListByCategoryName(categoryName);//获得规格参数列表
+            List<Map> specList = (List<Map>)redisTemplate.boundHashOps(CacheKey.SPEC_LIST).get(categoryName);
             for (Map spec : specList) {
                 String[] options = ((String) spec.get("options")).split(",");//将字符串转换为数组
                 spec.put("options", options);//重新添加到map中

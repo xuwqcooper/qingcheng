@@ -2,14 +2,19 @@ package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.qingcheng.dao.CategoryMapper;
 import com.qingcheng.dao.SpecMapper;
 import com.qingcheng.dao.TemplateMapper;
 import com.qingcheng.entity.PageResult;
+import com.qingcheng.pojo.goods.Category;
 import com.qingcheng.pojo.goods.Spec;
 import com.qingcheng.pojo.goods.Template;
+import com.qingcheng.service.goods.CategoryService;
 import com.qingcheng.service.goods.SpecService;
 import com.qingcheng.service.goods.TemplateService;
+import com.qingcheng.util.CacheKey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
@@ -24,6 +29,13 @@ public class SpecServiceImpl implements SpecService {
 
     @Autowired
     private TemplateMapper templateMapper;
+
+    @Autowired
+    private CategoryMapper categoryMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     /**
      * 返回全部记录
      * @return
@@ -108,6 +120,21 @@ public class SpecServiceImpl implements SpecService {
         template.setSpecNum(template.getSpecNum()-1);
         templateMapper.updateByPrimaryKey(template);
         specMapper.deleteByPrimaryKey(id);
+    }
+
+    /**
+     * 将规格存入缓存
+     */
+    public void saveSpecToRedis() {
+        //查询所有的分类
+        List<Category> categories = categoryMapper.selectAll();
+        //循环商品分类 得到每一个商品
+        for (Category category : categories) {
+            //通过商品分类的名称 查询出对应的规格列表
+            List<Map> specList = specMapper.findListByCategoryName(category.getName());
+            //添加到缓存
+            redisTemplate.boundHashOps(CacheKey.SPEC_LIST).put(category.getName(), specList);
+        }
     }
 
     /**
