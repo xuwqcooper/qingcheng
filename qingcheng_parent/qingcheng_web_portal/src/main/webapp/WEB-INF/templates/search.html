@@ -490,6 +490,13 @@
                             <a th:href="${#strings.replace(url,'&'+item.key+'='+item.value,'')}">×</a>
                         </i>
                     </li>
+                    <!--价格条件-->
+                    <li class="with-x" th:if="${#maps.containsKey(searchMap,'price')}">
+                        <span th:text="${'价格:'+searchMap.price}"></span>
+                        <i>
+                            <a th:href="${#strings.replace(url,'&price='+searchMap.price,'')}">×</a>
+                        </i>
+                    </li>
 
 				</ul>				
 			</div>
@@ -571,27 +578,28 @@
 					</div>
 					<div class="fl ext"></div>
 				</div>
-				<div class="type-wrap">
+                <!--如果查询集合里面包含price这个属性,就不显示-->
+				<div class="type-wrap" th:if="!${#maps.containsKey(searchMap,'price')}">
 					<div class="fl key">价格</div>
 					<div class="fl value">
 						<ul class="type-list">
 							<li>
-								<a>0-500元</a>
+								<a th:href="${url+'&price=0-500'}">0-500元</a>
 							</li>
 							<li>
-								<a>500-1000元</a>
+								<a th:href="${url+'&price=500-1000'}">500-1000元</a>
 							</li>
 							<li>
-								<a>1000-1500元</a>
+								<a th:href="${url+'&price=1000-1500'}">1000-1500元</a>
 							</li>
 							<li>
-								<a>1500-2000元</a>
+								<a th:href="${url+'&price=1500-2000'}">1500-2000元</a>
 							</li>
 							<li>
-								<a>2000-3000元 </a>
+								<a th:href="${url+'&price=2000-3000'}">2000-3000元 </a>
 							</li>
 							<li>
-								<a>3000元以上</a>
+								<a th:href="${url+'&price=3000-*'}">3000元以上</a>
 							</li>
 						</ul>
 					</div>

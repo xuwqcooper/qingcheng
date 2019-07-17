@@ -10,10 +10,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -85,6 +82,19 @@ public class SkuSearchServiceImpl implements SkuSearchService {
             if (key.startsWith("spec.")) {//如果是规格参数
                 TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(key + ".keyword", searchMap.get(key));
                 queryBuilder.filter(termQueryBuilder);
+            }
+        }
+
+        //1.5价格过滤
+        if (searchMap.get("price") != null) {
+            String[] prices = searchMap.get("price").split("-");
+            if (!prices[0].equals(0)) {//如果第一个价格不等于0 说明有最小值 gte方法代表大于等于
+                RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery("price").gte(prices[0] + "00");
+                queryBuilder.filter(rangeQueryBuilder);
+            }
+            if (!prices[1].equals("*")) {
+                RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery("price").lte(prices[1] + "00");
+                queryBuilder.filter(rangeQueryBuilder);
             }
         }
 
