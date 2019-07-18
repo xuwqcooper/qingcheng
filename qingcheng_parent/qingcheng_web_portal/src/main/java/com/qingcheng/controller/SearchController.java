@@ -29,6 +29,18 @@ public class SearchController {
         if (searchMap.get("pageNo") == null) {
             searchMap.put("pageNo", "1");
         }
+
+        //判断前台传回来的sort
+        if (searchMap.get("sort") == null) {//如果前台传回来的sort= null 即为 综合那一列的排序
+            searchMap.put("sort", "");    //设置为空字符串
+        }
+
+        //判断前台传回来的sortOrder的内容
+        if (searchMap.get("sortOrder") == null) {//如果传回来的为空
+            searchMap.put("sortOrder", "DESC");//默认设置为降序
+        }
+
+
         //远程调用接口
         Map result = skuSearchService.serch(searchMap);
         model.addAttribute("result", result);

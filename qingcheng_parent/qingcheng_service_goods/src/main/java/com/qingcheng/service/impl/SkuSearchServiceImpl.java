@@ -20,9 +20,11 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import javax.swing.text.Highlighter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -112,7 +114,16 @@ public class SkuSearchServiceImpl implements SkuSearchService {
         Integer fromIndex = (pageNo - 1) * pageSize;//计算开始开始索引
         searchSourceBuilder.from(fromIndex);//设置开始索引
         searchSourceBuilder.size(pageSize);//设置每页记录数
+        //1.7搜索排序
+        String sort = searchMap.get("sort");
+        String sortOrder = searchMap.get("sortOrder");
+        if (!"".equals(sort)) {//如果sort等于空字符串 就不用查询
+            searchSourceBuilder.sort(sort, SortOrder.valueOf(sortOrder));
+        }
+
         searchRequest.source(searchSourceBuilder);
+
+
 
         //2 封装查询结果
         Map resultMap = new HashMap();//新建一个map作为返回结果
