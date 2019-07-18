@@ -512,7 +512,7 @@
 					<div class="fl ext"></div>
 				</div>
                 <!--品牌分类-->
-                <div class="type-wrap logo" th:if="${!#maps.containsKey(searchMap,'brand')}">
+                <div class="type-wrap logo" th:if="!${#maps.containsKey(searchMap,'brand')}">
                     <div class="fl key brand">品牌</div>
                     <div class="value logos">
                         <ul class="logo-list">
@@ -688,20 +688,9 @@
 							<li class="prev disabled">
 								<a href="#">«上一页</a>
 							</li>
-							<li class="active">
-								<a href="#">1</a>
-							</li>
-							<li>
-								<a href="#">2</a>
-							</li>
-							<li>
-								<a href="#">3</a>
-							</li>
-							<li>
-								<a href="#">4</a>
-							</li>
-							<li>
-								<a href="#">5</a>
+                            <li class="dotted"><span>...</span></li>
+							<li th:class="${page==searchMap.pageNo?'active':''}" th:each="page:${#numbers.sequence(startPage,endPage)}">
+								<a th:href="${#strings.replace(url,'&pageNo='+searchMap.pageNo,'&pageNo='+page)}" th:text="${page}"></a>
 							</li>
 							<li class="dotted"><span>...</span></li>
 							<li class="next">

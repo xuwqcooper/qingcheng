@@ -60,6 +60,7 @@ public class SkuSearchServiceImpl implements SkuSearchService {
         SearchRequest searchRequest = new SearchRequest("sku");//相当于从哪个索引库查询
         searchRequest.types("doc");//查询的类型 (相当于数据库中表)
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();//相当于得一个{}
+
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();//布尔查询 构造器
 
         //1.1关键字搜索
@@ -102,9 +103,15 @@ public class SkuSearchServiceImpl implements SkuSearchService {
                 queryBuilder.filter(rangeQueryBuilder);
             }
         }
-
         searchSourceBuilder.query(queryBuilder);//将bool查询添加到大查询中 即第一个{}
         searchSourceBuilder.aggregation(termsAggregationBuilder);//将商品分类过滤这个查询添加到查询源中
+
+        //1.6分页
+        Integer pageNo =Integer.parseInt(searchMap.get("pageNo")) ;//获取当前页
+        Integer pageSize = 30;//每页记录数
+        Integer fromIndex = (pageNo - 1) * pageSize;//计算开始开始索引
+        searchSourceBuilder.from(fromIndex);//设置开始索引
+        searchSourceBuilder.size(pageSize);//设置每页记录数
         searchRequest.source(searchSourceBuilder);
 
         //2 封装查询结果
@@ -159,6 +166,11 @@ public class SkuSearchServiceImpl implements SkuSearchService {
                 spec.put("options", options);//重新添加到map中
             }
             resultMap.put("specList", specList);
+
+            //2.5 页码
+            long totalCount = searchHits.getTotalHits();//总记录数
+            long pageCount = (totalCount % pageSize == 0) ? totalCount / pageSize : (totalCount / pageSize + 1);//总页数
+            resultMap.put("totalPages", pageCount);//将总页数添加到返回中
 
 
         } catch (IOException e) {
