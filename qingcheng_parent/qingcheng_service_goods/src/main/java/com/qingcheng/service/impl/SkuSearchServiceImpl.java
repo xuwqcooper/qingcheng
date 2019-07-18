@@ -3,6 +3,7 @@ package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.qingcheng.dao.BrandMapper;
 import com.qingcheng.dao.SpecMapper;
+import com.qingcheng.pojo.goods.Sku;
 import com.qingcheng.pojo.goods.Template;
 import com.qingcheng.service.goods.SkuSearchService;
 import com.qingcheng.service.goods.SpecService;
@@ -11,6 +12,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -20,6 +22,8 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -121,6 +125,11 @@ public class SkuSearchServiceImpl implements SkuSearchService {
             searchSourceBuilder.sort(sort, SortOrder.valueOf(sortOrder));
         }
 
+        //1.8高亮显示
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        highlightBuilder.field("name").preTags("<font style = 'color:red'>").postTags("</font>");
+        //添加到searchSourceBuilder中
+        searchSourceBuilder.highlighter(highlightBuilder);
         searchRequest.source(searchSourceBuilder);
 
 
@@ -139,9 +148,14 @@ public class SkuSearchServiceImpl implements SkuSearchService {
             //2.1商品列表
             List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
             for (SearchHit hit : hits) {
-                Map<String, Object> map = hit.getSourceAsMap();//将每一个对象封装为一个map
-                resultList.add(map);//添加到集合中
+                Map<String, Object> skuMap = hit.getSourceAsMap();//将每一个对象封装为一个map
+                Map<String, HighlightField> highlightFields = hit.getHighlightFields();
+                Text[] names = highlightFields.get("name").fragments();
+                String name = names[0].toString();
+                skuMap.put("name", name);//将新的高亮的替换原来的name
+                resultList.add(skuMap);//添加到集合中
             }
+
             resultMap.put("rows", resultList);
 
             //2.2商品分类列表
@@ -172,11 +186,13 @@ public class SkuSearchServiceImpl implements SkuSearchService {
             //2.4规格列表
             //List<Map> specList = specMapper.findListByCategoryName(categoryName);//获得规格参数列表
             List<Map> specList = (List<Map>)redisTemplate.boundHashOps(CacheKey.SPEC_LIST).get(categoryName);
-            for (Map spec : specList) {
-                String[] options = ((String) spec.get("options")).split(",");//将字符串转换为数组
-                spec.put("options", options);//重新添加到map中
+            if (specList.size() > 0) {
+                for (Map spec : specList) {
+                    String[] options = ((String) spec.get("options")).split(",");//将字符串转换为数组
+                    spec.put("options", options);//重新添加到map中
+                }
+                resultMap.put("specList", specList);
             }
-            resultMap.put("specList", specList);
 
             //2.5 页码
             long totalCount = searchHits.getTotalHits();//总记录数
