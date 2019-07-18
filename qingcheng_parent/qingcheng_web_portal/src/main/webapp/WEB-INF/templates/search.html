@@ -685,19 +685,25 @@
 				<div class="fr page">
 					<div class="sui-pagination pagination-large">
 						<ul>
-							<li class="prev disabled">
-								<a href="#">«上一页</a>
+							<li class="prev " th:if="${pageNo>1}">
+								<a th:href="${#strings.replace(url,'&pageNo='+pageNo,'&pageNo='+(pageNo-1) )}">«</a>
 							</li>
-                            <li class="dotted"><span>...</span></li>
-							<li th:class="${page==searchMap.pageNo?'active':''}" th:each="page:${#numbers.sequence(startPage,endPage)}">
+                            <li class="prev disabled" th:if="${pageNo<=1}">
+                                <a>«</a>
+                            </li>
+                            <li class="dotted" th:if="${startPage>1}"><span>...</span></li>
+							<li th:class="${page==pageNo?'active':''}" th:each="page:${#numbers.sequence(startPage,endPage)}">
 								<a th:href="${#strings.replace(url,'&pageNo='+searchMap.pageNo,'&pageNo='+page)}" th:text="${page}"></a>
 							</li>
-							<li class="dotted"><span>...</span></li>
-							<li class="next">
-								<a href="#">下一页»</a>
+							<li class="dotted"th:if="${endPage<result.totalPages}"><span>...</span></li>
+							<li class="next" th:if="${endPage<result.totalPages}">
+								<a th:href="${#strings.replace(url,'&pageNo='+pageNo,'&pageNo'+(pageNo+1))}">»</a>
 							</li>
+                            <li class="next disabled" th:if="${endPage>=result.totalPages}">
+                                <a>»</a>
+                            </li>
 						</ul>
-						<div><span>共10页&nbsp;</span><span>
+						<div><span th:text="${result.totalPages}"></span><span>
       到第
       <input type="text" class="page-num">
       页 <button class="page-confirm" onclick="alert(1)">确定</button></span></div>

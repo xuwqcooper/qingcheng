@@ -50,15 +50,15 @@ public class SearchController {
         int endPage = totalPages.intValue();//设置截止位置
         //设置一页显示5页
         if (totalPages > 5) {//如果总页数大于5页
-            if (pageNo < 3) {//如果当前页码小于3
+            //首页=当前页减2
+            startPage = pageNo - 2;
+            if (startPage < 1) {//如果当前页码小于3
                 //设置起始页为1
                 startPage = 1;
             }
-            //其他情况就是当前页减2
-            startPage = pageNo - 2;
             endPage = startPage + 4;
             //如果当前页码大于总页数-2
-            if (pageNo > totalPages - 2) {
+            if (endPage > totalPages) {
                 //endPage = 总页数
                 endPage = totalPages.intValue();
                 //起始页 = 总页数-4
