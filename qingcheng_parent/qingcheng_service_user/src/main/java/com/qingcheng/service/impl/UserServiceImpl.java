@@ -13,10 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -130,6 +127,40 @@ public class UserServiceImpl implements UserService {
         map.put("phone", phone);
         map.put("code", code + "");
         rabbitTemplate.convertAndSend("","queue.sms", JSON.toJSONString(map));
+    }
+
+    /**
+     * 用户注册
+     * @param user
+     * @param smsCode
+     */
+    public void add(User user, String smsCode) {
+        //1.校验
+        String sysCode = (String) redisTemplate.boundValueOps("code_" + user.getPhone()).get();//提取系统的验证码
+        if (sysCode == null) {//判断验证码是否为空
+            throw new RuntimeException("验证码未发送或已过期");
+        }
+        if (!smsCode.equals(sysCode)) {//判断验证码是否与缓存中的验证码是否相同
+            throw new RuntimeException("验证码不正确");
+        }
+        if (user.getUsername() == null) {//判断用户的名字是否为空
+            user.setUsername(user.getPhone());//如果为空 则将手机号设置为用户名
+        }
+        //校验用户名是否注册
+        User searchUser = new User();
+        searchUser.setUsername(user.getUsername());
+        int count = userMapper.selectCount(searchUser);
+        if (count > 0) {
+            throw new RuntimeException("该手机号已注册");
+        }
+        //数据添加
+        user.setCreated(new Date());//注册时间
+        user.setUpdated(new Date());//修改时间
+        user.setPoints(0);//设置积分数为0
+        user.setStatus("1");//状态
+        user.setIsEmailCheck("0");//邮箱验证
+        user.setIsMobileCheck("1");//手机验证
+        userMapper.insert(user);//添加到数据库
     }
 
     /**

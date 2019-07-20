@@ -38,4 +38,11 @@ public interface UserService {
      */
     public void sendSms(String phone);
 
+    /**
+     * 用户注册
+     * @param user
+     * @param smsCode
+     */
+    public void add(User user, String smsCode);
+
 }
