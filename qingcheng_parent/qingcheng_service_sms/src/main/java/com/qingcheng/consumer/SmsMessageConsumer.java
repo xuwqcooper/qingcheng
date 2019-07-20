@@ -1,8 +1,11 @@
 package com.qingcheng.consumer;
 
 import com.alibaba.fastjson.JSON;
+import com.aliyuncs.CommonResponse;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -14,6 +17,15 @@ import java.util.Map;
  */
 @Component
 public class SmsMessageConsumer implements MessageListener {
+
+    @Autowired
+    private SmsUtil smsUtil;
+
+    @Value("${smsCode}")
+    private String smsCode;
+
+    @Value("${param}")
+    private String param;
     public void onMessage(Message message) {
         String jsonString = new String(message.getBody());//之前存在mq里面转化为json字符串的map
         Map<String,String> map = JSON.parseObject(jsonString, Map.class);
@@ -22,5 +34,7 @@ public class SmsMessageConsumer implements MessageListener {
         System.out.println("手机号:"+phone+"验证码: "+code);
 
         //调用阿里云通信..
+
+        CommonResponse commonResponse = smsUtil.sendSms(phone, smsCode, param.replace("[value]", code));
     }
 }
