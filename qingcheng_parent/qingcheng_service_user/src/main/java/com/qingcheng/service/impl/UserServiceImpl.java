@@ -1,16 +1,23 @@
 package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.qingcheng.dao.UserMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.user.User;
 import com.qingcheng.service.user.UserService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -93,6 +100,36 @@ public class UserServiceImpl implements UserService {
      */
     public void delete(String username) {
         userMapper.deleteByPrimaryKey(username);
+    }
+
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    /**
+     * 发送短信验证码
+     * @param phone 手机号
+     */
+    public void sendSms(String phone) {
+        //1.生成一个6位随机验证吗
+        Random random = new Random();//随机
+        int code = random.nextInt(999999);//生成的验证码 但是不一定是6位的 所以你可以用下面判断保证
+        if (code < 100000) {//保证生成的验证码为6位数
+            code = code + 100000;
+        }
+        //打印出来验证码 看一看
+        System.out.println("验证码: "+code);
+
+        //2.将验证码保存到redis
+        redisTemplate.boundValueOps("code_"+phone).set(code+"");//将验证码保存到缓存中
+        redisTemplate.boundValueOps("code_" + phone).expire(5, TimeUnit.MINUTES);//设置验证码的过期时间 因为验证码所以一般都要设置
+
+        //将验证码发给mq
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("phone", phone);
+        map.put("code", code + "");
+        rabbitTemplate.convertAndSend("","queue.sms", JSON.toJSONString(map));
     }
 
     /**

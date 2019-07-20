@@ -113,15 +113,16 @@ public class SkuSearchServiceImpl implements SkuSearchService {
         searchSourceBuilder.aggregation(termsAggregationBuilder);//将商品分类过滤这个查询添加到查询源中
 
         //1.6分页
+
         Integer pageNo =Integer.parseInt(searchMap.get("pageNo")) ;//获取当前页
         Integer pageSize = 30;//每页记录数
         Integer fromIndex = (pageNo - 1) * pageSize;//计算开始开始索引
         searchSourceBuilder.from(fromIndex);//设置开始索引
         searchSourceBuilder.size(pageSize);//设置每页记录数
         //1.7搜索排序
-        String sort = searchMap.get("sort");
-        String sortOrder = searchMap.get("sortOrder");
-        if (!"".equals(sort)) {//如果sort等于空字符串 就不用查询
+        String sort = searchMap.get("sort");//获得排序字段
+        String sortOrder = searchMap.get("sortOrder"); //获得排序规则 降序DESC 升序 ASC
+        if (!"".equals(sort)) {//如果sort等于空字符串 就不用查询 提高性能 默认是前台的综合
             searchSourceBuilder.sort(sort, SortOrder.valueOf(sortOrder));
         }
 
@@ -148,7 +149,7 @@ public class SkuSearchServiceImpl implements SkuSearchService {
             //2.1商品列表
             List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
             for (SearchHit hit : hits) {
-                Map<String, Object> skuMap = hit.getSourceAsMap();//将每一个对象封装为一个map
+                Map<String, Object> skuMap = hit.getSourceAsMap();//将每一个对象封装为一个map 原本装有name的属性 被下面高亮部分覆盖了
                 Map<String, HighlightField> highlightFields = hit.getHighlightFields();
                 Text[] names = highlightFields.get("name").fragments();
                 String name = names[0].toString();
@@ -173,9 +174,9 @@ public class SkuSearchServiceImpl implements SkuSearchService {
             if (searchMap.get("category") == null) {//判断查询条件里是否有分类名称 如果没有代表没有查询 品牌列表显示为第一个 如果没有分类条件
                 if (categoryList.size() > 0) {
                     categoryName = categoryList.get(0);//获取第一个分类名称
-                } else {
-                    categoryName = searchMap.get("category");//选取了 就选取当前分类名称
                 }
+            }else {
+                categoryName = searchMap.get("category");//选取了 就选取当前分类名称
             }
             //2.3品牌列表
             if (searchMap.get("brand") == null) {//如果没有brand的值

@@ -26,16 +26,19 @@ public class SearchController {
         //字符集处理
         searchMap = WebUtil.convertCharsetToUTF8(searchMap);
         //如果前台传回的当前页码为空 则设置当前页码为第一页
-        if (searchMap.get("pageNo") == null) {
+        if (searchMap.get("pageNo") == null || Integer.parseInt(searchMap.get("pageNo"))<1) {//如果前台的页码小于1 也设置为1
             searchMap.put("pageNo", "1");
         }
+       /* if (searchMap.get("wantPage") != null) {
+            searchMap.put("pageNo", searchMap.get("wantPage"));
+        }*/
 
         //判断前台传回来的sort
         if (searchMap.get("sort") == null) {//如果前台传回来的sort= null 即为 综合那一列的排序
             searchMap.put("sort", "");    //设置为空字符串
         }
 
-        //判断前台传回来的sortOrder的内容
+        //判断前台传回来的sortOrder的内容 前台和后台的约定
         if (searchMap.get("sortOrder") == null) {//如果传回来的为空
             searchMap.put("sortOrder", "DESC");//默认设置为降序
         }
