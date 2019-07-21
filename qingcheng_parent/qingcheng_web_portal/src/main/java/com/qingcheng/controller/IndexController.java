@@ -25,7 +25,7 @@ public class IndexController {
     @Reference
     private CategoryService categoryService;
 
-    @RequestMapping("/index")
+    @RequestMapping("/index.do")
     public String index(Model model) {
         //查询出轮播图的集合
         List<Ad> lbtList = adService.findByPosition("index_lb");
