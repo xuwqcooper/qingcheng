@@ -12,5 +12,6 @@ public enum CacheKey {
     CATEGORY_TREE,//商品分类的导航
     BRAND_LIST,//品牌名称
     SPEC_LIST,//规格列表
+    CART_LIST,//购物车列表
 
 }
