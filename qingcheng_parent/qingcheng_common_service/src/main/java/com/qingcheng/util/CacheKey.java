@@ -13,5 +13,6 @@ public enum CacheKey {
     BRAND_LIST,//品牌名称
     SPEC_LIST,//规格列表
     CART_LIST,//购物车列表
+    CATEGORY,//商品分类
 
 }
