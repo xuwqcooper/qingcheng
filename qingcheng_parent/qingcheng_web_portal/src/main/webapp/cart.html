@@ -129,9 +129,9 @@
 					<a href="#none">清除下柜商品</a>
 				</div>
 				<div class="money-box">
-					<div class="chosed">已选择<span>0</span>件商品</div>
+					<div class="chosed">已选择<span>{{totalNum}}</span>件商品</div>
 					<div class="sumprice">
-						<span><em>总价（不含运费） ：</em><i class="summoney">¥16283.00</i></span>
+						<span><em>总价（不含运费） ：</em><i class="summoney">¥{{(totalMoney/100).toFixed(2)}}</i></span>
 						<span><em>已节省：</em><i>-¥20.00</i></span>
 					</div>
 					<div class="sumbtn">
@@ -417,7 +417,9 @@
 		el:"#app",
 		data() {
             return {
-                cartList:{}
+                cartList:{},
+				totalMoney:0,
+				totalNum:0
 			};
         },
 		created() {
@@ -427,6 +429,7 @@
 		    findCartList() {
 				axios.get(`/cart/findCartList.do`).then(response=> {
                     this.cartList = response.data;
+                    this.count();
                 })
             },
 			addItem(skuId,num) {
@@ -435,7 +438,20 @@
                 })
             },
 			updateChecked(skuId,checked) {
-				axios.get(`/cart/updateChecked.do?skuId=${skuId}&checked=${checked}`).then(response=>{})
+				axios.get(`/cart/updateChecked.do?skuId=${skuId}&checked=${checked}`).then(response=>{
+                    this.count();
+				})
+            },
+			count() {
+                this.totalNum = 0;
+                this.totalMoney = 0;
+                for(let i=0;i<this.cartList.length;i++){
+                    if(this.cartList[i].checked) {//判断如果选中
+                        this.totalNum+=this.cartList[i].item.num;//累计数量
+                        this.totalMoney+=this.cartList[i].item.money;//累计总金额
+                    }
+				}
+
             }
 		}
 	});
