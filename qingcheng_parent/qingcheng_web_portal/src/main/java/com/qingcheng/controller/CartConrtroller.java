@@ -3,13 +3,16 @@ package com.qingcheng.controller;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.qingcheng.entity.Result;
 import com.qingcheng.service.order.CartService;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,5 +83,19 @@ public class CartConrtroller {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         cartService.deleteChecked(username);
         return new Result();
+    }
+
+
+    /**
+     * 计算当前选中购物车的优惠金额
+     * @return
+     */
+    @GetMapping("/preferential.do")
+    public Map preferential() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        int preferential = cartService.preferential(username);
+        Map map = new HashMap();
+        map.put("preferential", preferential);
+        return map;
     }
 }

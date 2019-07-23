@@ -39,4 +39,11 @@ public interface CartService {
      * @param username
      */
     public void deleteChecked(String username);
+
+    /**
+     * 计算购物车中当前选中的优惠金额
+     * @param username
+     * @return
+     */
+    public int preferential(String username);
 }

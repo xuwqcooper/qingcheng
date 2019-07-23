@@ -8,14 +8,12 @@ import com.qingcheng.pojo.order.OrderItem;
 import com.qingcheng.service.goods.CategoryService;
 import com.qingcheng.service.goods.SkuService;
 import com.qingcheng.service.order.CartService;
+import com.qingcheng.service.order.PreferentialService;
 import com.qingcheng.util.CacheKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -176,5 +174,35 @@ public class CartServiceImpl implements CartService {
                 stream().filter(cart -> (boolean) cart.get("checked") == false).collect(Collectors.toList());
         //重新添加进缓存 覆盖之前的缓存
         redisTemplate.boundHashOps(CacheKey.CART_LIST).put(username, cartList);
+    }
+
+    @Autowired
+    private PreferentialService preferentialService;
+    /**
+     * 计算当前用户购物车的优惠金额
+     * @param username
+     * @return
+     */
+    @Override
+    public int preferential(String username) {
+        //获取选中的购物车
+        List<OrderItem> orderItemList = findCartList(username).stream().filter(cart -> (boolean) cart.get("checked") == true)
+                .map(cart -> (OrderItem) cart.get("item")).collect(Collectors.toList());
+        //按分类聚合统计每个分类的金额  group by
+        Map<Integer, IntSummaryStatistics> cartMap = orderItemList.stream()
+                .collect(Collectors.groupingBy(OrderItem::getCategoryId3, Collectors.summarizingInt(OrderItem::getMoney)));
+
+        //循环累计优惠金额
+        int allPreMoney = 0;
+        for (Integer categoryId : cartMap.keySet()) {
+            //获取品类的消费金额
+            int money = (int)cartMap.get(categoryId).getSum();
+            int preMoney = preferentialService.findPreMoneyByCategoryId(categoryId, money);//获取优惠金额
+            System.out.println("分类:" + categoryId + "消费总金额:" + money + "优惠金额:" + preMoney);
+            allPreMoney += preMoney;//优惠累加
+
+        }
+        return allPreMoney;
+
     }
 }

@@ -132,7 +132,7 @@
 					<div class="chosed">已选择<span>{{totalNum}}</span>件商品</div>
 					<div class="sumprice">
 						<span><em>总价（不含运费） ：</em><i class="summoney">¥{{(totalMoney/100).toFixed(2)}}</i></span>
-						<span><em>已节省：</em><i>-¥20.00</i></span>
+						<span><em>已节省：</em><i>-¥{{(preferential/100).toFixed(2)}}</i></span>
 					</div>
 					<div class="sumbtn">
 						<a class="sum-btn" href="getOrderInfo.html" target="_blank">结算</a>
@@ -418,8 +418,9 @@
 		data() {
             return {
                 cartList:{},
-				totalMoney:0,
-				totalNum:0
+				totalMoney:0,//总金额
+				totalNum:0,//总数量
+                preferential:0//优惠金额
 			};
         },
 		created() {
@@ -451,11 +452,19 @@
                         this.totalMoney+=this.cartList[i].item.money;//累计总金额
                     }
 				}
+				//计算优惠金额
+                axios.get(`/cart/preferential.do`).then(response=> {
+                    this.preferential = response.data.preferential;
+                    this.totalMoney = this.totalMoney - this.preferential;//最后的总金额
+                })
             },
             deleteCheckedCart() {
                 axios.get(`/cart/deleteCheckedCart.do`).then(response=> {
                     this.findCartList();//加载购物车
                 })
+            },
+            preferential() {
+
             }
 		}
 	});
