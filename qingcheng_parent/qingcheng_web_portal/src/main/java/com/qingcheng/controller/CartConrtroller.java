@@ -70,4 +70,15 @@ public class CartConrtroller {
         cartService.updateChecked(username, skuId, checked);
         return new Result();
     }
+
+    /**
+     * 删除选中的购物车
+     * @return
+     */
+    @GetMapping("/deleteCheckedCart.do")
+    public Result deleteCheckedCart() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        cartService.deleteChecked(username);
+        return new Result();
+    }
 }

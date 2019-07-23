@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @Author: cooper
@@ -162,5 +163,18 @@ public class CartServiceImpl implements CartService {
             redisTemplate.boundHashOps(CacheKey.CART_LIST).put(username, cartList);
         }
         return isOk;
+    }
+
+    /**
+     * 删除选中的购物车
+     * @param username
+     */
+    @Override
+    public void deleteChecked(String username) {
+        //获取未选中的购物车 利用stream中的过滤
+        List<Map<String, Object>> cartList = findCartList(username).
+                stream().filter(cart -> (boolean) cart.get("checked") == false).collect(Collectors.toList());
+        //重新添加进缓存 覆盖之前的缓存
+        redisTemplate.boundHashOps(CacheKey.CART_LIST).put(username, cartList);
     }
 }

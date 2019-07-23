@@ -33,4 +33,10 @@ public interface CartService {
      * @return
      */
     public boolean updateChecked(String username,String skuId,boolean checked);
+
+    /**
+     * 删除选中的购物车
+     * @param username
+     */
+    public void deleteChecked(String username);
 }

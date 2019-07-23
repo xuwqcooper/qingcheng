@@ -124,7 +124,7 @@
 					<span>全选</span>
 				</div>
 				<div class="option">
-					<a href="#none">删除选中的商品</a>
+					<a @click="deleteCheckedCart()">删除选中的商品</a>
 					<a href="#none">移到我的关注</a>
 					<a href="#none">清除下柜商品</a>
 				</div>
@@ -423,7 +423,7 @@
 			};
         },
 		created() {
-            this.findCartList();//加载页面时候,就加载购物车列表
+            this.findCartList();//加载页面时候,就加载购物车列表 还有加载总金额和总数量
         },
 		methods:{
 		    findCartList() {
@@ -451,6 +451,11 @@
                         this.totalMoney+=this.cartList[i].item.money;//累计总金额
                     }
 				}
+            },
+            deleteCheckedCart() {
+                axios.get(`/cart/deleteCheckedCart.do`).then(response=> {
+                    this.findCartList();//加载购物车
+                })
             }
 		}
 	});
