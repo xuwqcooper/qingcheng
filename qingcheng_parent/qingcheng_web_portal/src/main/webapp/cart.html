@@ -417,9 +417,13 @@
 		el:"#app",
 		data() {
             return {
+<<<<<<< HEAD
                 cartList:{},
 				totalMoney:0,
 				totalNum:0
+=======
+                cartList:{}
+>>>>>>> origin/master
 			};
         },
 		created() {
@@ -429,7 +433,10 @@
 		    findCartList() {
 				axios.get(`/cart/findCartList.do`).then(response=> {
                     this.cartList = response.data;
+<<<<<<< HEAD
                     this.count();
+=======
+>>>>>>> origin/master
                 })
             },
 			addItem(skuId,num) {
@@ -438,6 +445,7 @@
                 })
             },
 			updateChecked(skuId,checked) {
+<<<<<<< HEAD
 				axios.get(`/cart/updateChecked.do?skuId=${skuId}&checked=${checked}`).then(response=>{
                     this.count();
 				})
@@ -452,6 +460,9 @@
                     }
 				}
 
+=======
+				axios.get(`/cart/updateChecked.do?skuId=${skuId}&checked=${checked}`).then(response=>{})
+>>>>>>> origin/master
             }
 		}
 	});
