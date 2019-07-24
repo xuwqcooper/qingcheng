@@ -1,5 +1,7 @@
 package com.qingcheng.service.order;
 
+import com.sun.javafx.logging.PulseLogger;
+
 import java.util.List;
 import java.util.Map;
 
@@ -46,4 +48,11 @@ public interface CartService {
      * @return
      */
     public int preferential(String username);
+
+    /**
+     * 获取最新的购物车列表
+     * @param username
+     * @return
+     */
+    public List<Map<String, Object>> findNewOrderItemList(String username);
 }

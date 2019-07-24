@@ -2,8 +2,11 @@ package com.qingcheng.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.qingcheng.entity.Result;
+import com.qingcheng.pojo.user.Address;
+import com.qingcheng.service.business.AdService;
 import com.qingcheng.service.order.CartService;
 
+import com.qingcheng.service.user.AddressService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -98,4 +101,29 @@ public class CartConrtroller {
         map.put("preferential", preferential);
         return map;
     }
+
+    /**
+     * 获取刷新价格后的购物车列表
+     * @return
+     */
+    @GetMapping("/findNewOrderItemList.do")
+    public List<Map<String, Object>> findNewOrderItemList() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<Map<String, Object>> cartList = cartService.findNewOrderItemList(username);
+        return cartList;
+    }
+
+    @Reference
+    private AddressService addressService;
+    /**
+     * 查询地址列表
+     * @return
+     */
+    @GetMapping("/findAddressList.do")
+    public List<Address> findAddressList() {
+        //获取当前用户名
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return addressService.findByUsername(username);
+    }
+
 }
