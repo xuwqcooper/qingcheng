@@ -22,6 +22,8 @@
         <module>qingcheng_service_sms</module>
         <module>qingcheng_commen_cas</module>
         <module>qingcheng_web_center</module>
+        <module>qingcheng_service_seckill</module>
+        <module>qIngcheng_web_seckill</module>
     </modules>
 
     <packaging>pom</packaging>

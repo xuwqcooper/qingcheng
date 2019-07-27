@@ -50,5 +50,12 @@ public interface OrderService {
 
     public void split( IdAndNum[] searchMap);
 
+    /**
+     * 修改订单状态
+     * @param orderId
+     * @param transactionId
+     */
+    public void updatePayStatus(String orderId,String transactionId);
+
 
 }

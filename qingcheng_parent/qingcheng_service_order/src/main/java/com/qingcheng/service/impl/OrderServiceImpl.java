@@ -15,8 +15,6 @@ import com.qingcheng.service.goods.SkuService;
 import com.qingcheng.service.order.CartService;
 import com.qingcheng.service.order.OrderService;
 import com.qingcheng.util.IdWorker;
-import org.aspectj.weaver.ast.Var;
-import org.omg.CORBA.ORB;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +108,7 @@ public class OrderServiceImpl implements OrderService {
     @Reference
     private SkuService skuService;
 
-    @Reference
+    @Autowired
     private RabbitTemplate rabbitTemplate;
 
     /**
@@ -118,15 +116,17 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param order
      */
+    @Transactional
     public Map<String, Object> add(Order order) {
         //获取购物车  刷新单价的购物车
-        List<Map<String, Object>> orderItemList = cartService.findNewOrderItemList(order.getUsername());
+        List<Map<String, Object>> cartList = cartService.findNewOrderItemList(order.getUsername());
         //获取选中的购物车
-        List<OrderItem> orderItems = orderItemList.stream().filter(cart -> (boolean) cart.get("checked")).map(cart -> (OrderItem) cart.get("item"))
+        List<OrderItem> orderItems = cartList.stream().filter(cart -> (boolean) cart.get("checked"))
+                .map(cart -> (OrderItem) cart.get("item"))
                 .collect(Collectors.toList());
         //扣减库存
         if (!skuService.deductionStock(orderItems)) {
-            throw new RuntimeException("库存扣减失败");
+            throw new RuntimeException("库存不足");
         }
         //保存订单主表
         order.setId(idWorker.nextId() + "");
@@ -148,12 +148,13 @@ public class OrderServiceImpl implements OrderService {
             order.setPayStatus("0");//支付状态:未支付
             order.setConsignStatus("0");//发货状态 :未发货
             orderMapper.insert(order);//添加到数据库
-            double proportion = order.getPayMoney() / totalMoney;
             //保存订单明细
+            //打折比例
+            double proportion = (double)order.getPayMoney() / totalMoney;
             for (OrderItem orderItem : orderItems) {
                 orderItem.setOrderId(order.getId());//订单主表id
                 orderItem.setId(idWorker.nextId() + "");//id 分布式id
-                orderItem.setPayMoney(orderItem.getPayMoney() * preMoney);//支付金额
+                orderItem.setPayMoney((int) (orderItem.getMoney() * proportion));//支付金额
                 orderItemMapper.insert(orderItem);//添加到数据库
             }
         } catch (Exception e) {
@@ -411,6 +412,35 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+    /**
+     * 修改订单状态
+     * @param orderId
+     * @param transactionId
+     */
+    @Override
+    public void updatePayStatus(String orderId, String transactionId) {
+        Order order = orderMapper.selectByPrimaryKey(orderId);
+        if (order != null && "0".equals(order.getPayStatus())) {
+            //修改订单状态等信息
+            order.setOrderStatus("1");//订单状态
+            order.setPayStatus("1");//支付状态
+            order.setUpdateTime(new Date());//修改日期
+            order.setPayTime(new Date());//支付日期
+            order.setTransactionId(transactionId);//交易流水号
+            orderMapper.updateByPrimaryKeySelective(order);//修改
+            //记录订单日志
+            OrderLog orderLog = new OrderLog();
+            orderLog.setId(idWorker.nextId()+"");//id
+            orderLog.setOperateTime(new Date());//操作时间
+            orderLog.setOperater("system");//系统操作
+            orderLog.setOrderStatus("1");//订单状态
+            orderLog.setPayStatus("1");//支付状态
+            orderLog.setRemarks("支付流水号:"+transactionId);//备注
+            orderLog.setOrderId(orderId);
+            orderLogMapper.insert(orderLog);
+
+        }
+    }
 
     /**
      * 构建查询条件

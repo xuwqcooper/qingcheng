@@ -123,7 +123,7 @@ public class CartConrtroller {
     public List<Address> findAddressList() {
         //获取当前用户名
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return addressService.findByUsername(username);
+         return addressService.findByUsername(username);
     }
 
 
@@ -138,6 +138,7 @@ public class CartConrtroller {
     @PostMapping("/saveOrder.do")
     public Map<String, Object> saveOrder(@RequestBody Order order) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        order.setUsername(username);
         return orderService.add(order);
     }
 

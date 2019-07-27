@@ -218,6 +218,7 @@ public class SkuServiceImpl implements SkuService {
     public boolean deductionStock(List<OrderItem> orderItems) {
 
         boolean idDeduction = true;//是否可以删除库存 默认可以删除
+        //检查是否能够扣减库存
         for (OrderItem orderItem : orderItems) {
             Sku sku = findById(orderItem.getSkuId());
             if (sku == null) {
@@ -225,7 +226,7 @@ public class SkuServiceImpl implements SkuService {
                 break;
             }
 
-            if ("1".equals(sku.getStatus())) {//判断商品状态
+            if (!"1".equals(sku.getStatus())) {//判断商品状态
                 idDeduction = false;
                 break;
             }
@@ -235,6 +236,7 @@ public class SkuServiceImpl implements SkuService {
                 break;
             }
         }
+        //执行扣减
         if (idDeduction) {//如果可以删除
             for (OrderItem orderItem : orderItems) {
                 //执行扣减库存

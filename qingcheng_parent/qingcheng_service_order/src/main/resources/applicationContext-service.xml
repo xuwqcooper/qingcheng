@@ -11,4 +11,6 @@
 		<constructor-arg index="1" value="1"></constructor-arg>
 	</bean>
 
+	<!--配置微信设置-->
+	<bean id="config" class="com.github.wxpay.sdk.Config"></bean>
 </beans>

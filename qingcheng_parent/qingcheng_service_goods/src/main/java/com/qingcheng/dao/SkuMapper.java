@@ -22,7 +22,7 @@ public interface SkuMapper extends Mapper<Sku> {
      * @param id
      * @param num
      */
-    @Update("update tb_sku set saleNum = saleNum + #{num} where id = #{id}")
+    @Update("update tb_sku set sale_num=sale_num+#{num} where id=#{id}")
     public void addSaleNum(@Param("id") String id, @Param("num") Integer num);
 
 }

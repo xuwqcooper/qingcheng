@@ -14,6 +14,8 @@
 
 <body>
 <div id="app">
+
+
 	<!--head-->
 	<!-- 头部栏位 -->
 	<!--页面顶部-->
@@ -89,7 +91,7 @@
 				<div class="cart-item-list">
 					<div class="cart-body">
 						<div class="cart-list" v-for="cart in cartList">
-							<ul class="goods-list yui3-g" >
+							<ul class="goods-list yui3-g">
 								<li class="yui3-u-1-24">
 									<input type="checkbox" name="chk_list" v-model="cart.checked" @click="updateChecked(cart.item.skuId,!cart.checked)"/>
 								</li>
@@ -104,17 +106,18 @@
 								</li>
 								<li class="yui3-u-1-8"><span class="price">{{(cart.item.price/100).toFixed(2)}}</span></li>
 								<li class="yui3-u-1-8">
-									<a @click="addItem(cart.item.skuId,-1)" class="increment mins">-</a>
+									<a class="increment mins" @click="addItem(cart.item.skuId,-1)">-</a>
 									<input autocomplete="off" type="text" v-model="cart.item.num" minnum="1" class="itxt" />
-									<a @click="addItem(cart.item.skuId,1)" class="increment plus">+</a>
+									<a  class="increment plus" @click="addItem(cart.item.skuId,1)"  >+</a>
 								</li>
 								<li class="yui3-u-1-8"><span class="sum">{{(cart.item.money/100).toFixed(2)}}</span></li>
 								<li class="yui3-u-1-8">
-									<a @click="addItem(cart.item.skuId,-cart.item.num)">删除</a><br />
+									<a @click="addItem(cart.item.skuId,-cart.item.num)" >删除</a><br />
 									<a href="#none">移到收藏</a>
 								</li>
 							</ul>
 						</div>
+
 					</div>
 				</div>
 			</div>
@@ -135,7 +138,7 @@
 						<span><em>已节省：</em><i>-¥{{(preferential/100).toFixed(2)}}</i></span>
 					</div>
 					<div class="sumbtn">
-						<a class="sum-btn" href="order.html" target="_blank">结算</a>
+						<a class="sum-btn" href="order.html" >结算</a>
 					</div>
 				</div>
 			</div>
@@ -402,6 +405,7 @@
 		</div>
 	</div>
 </div>
+
 </div>
 <!--页面底部END-->
 <script type="text/javascript" src="./js/plugins/jquery/jquery.min.js"></script>
@@ -410,62 +414,69 @@
 		$("input[name='chk_list']").prop("checked", $(this).prop("checked"));
 	})
 </script>
-<script src="/js/vue.js"></script>
-<script src="/js/axios.js"></script>
+
+<script src="js/axios.js"></script>
+<script src="js/vue.js"></script>
 <script>
-    new Vue({
-		el:"#app",
-		data() {
-            return {
-                cartList:{},
-				totalMoney:0,//总金额
-				totalNum:0,//总数量
-                preferential:0//优惠金额
-			};
-        },
-		created() {
-            this.findCartList();//加载页面时候,就加载购物车列表 还有加载总金额和总数量
-        },
+	new Vue({
+		el:'#app',
+		data(){
+		    return {
+		        cartList:[],
+				totalNum:0,
+				totalMoney:0,
+				preferential:0//优惠金额
+			}
+		},
+		created(){
+		  this.findCartList();
+		},
 		methods:{
-		    findCartList() {
-				axios.get(`/cart/findCartList.do`).then(response=> {
-                    this.cartList = response.data;
-                    this.count();
-                })
-            },
-			addItem(skuId,num) {
-				axios.get(`/cart/addItem.do?skuId=${skuId}&num=${num}`).then(response=> {
-                    this.findCartList();//加载购物车列表
-                })
-            },
-			updateChecked(skuId,checked) {
-				axios.get(`/cart/updateChecked.do?skuId=${skuId}&checked=${checked}`).then(response=>{
-                    this.count();
+		    findCartList(){
+		        axios.get(`/cart/findCartList.do`).then( response=>{
+		            this.cartList= response.data;
+		            this.count();
+				});
+			},
+			addItem(skuId,num){
+		        axios.get(`/cart/addItem.do?skuId=${skuId}&num=${num}`).then( response=>{
+		            this.findCartList();
+				});
+			},
+			updateChecked(skuId,checked){
+		        axios.get(`/cart/updateChecked.do?skuId=${skuId}&checked=${checked}`).then( response=>{
+		            this.count();
 				})
-            },
-			count() {
-                this.totalNum = 0;
-                this.totalMoney = 0;
-                for(let i=0;i<this.cartList.length;i++){
-                    if(this.cartList[i].checked) {//判断如果选中
-                        this.totalNum+=this.cartList[i].item.num;//累计数量
-                        this.totalMoney+=this.cartList[i].item.money;//累计总金额
-                    }
+			},
+			count(){
+		        this.totalNum=0;
+		        this.totalMoney=0;
+		        for(let i=0;i<this.cartList.length;i++){
+		            if(this.cartList[i].checked){
+		                this.totalNum+=  this.cartList[i].item.num;
+		                this.totalMoney+= this.cartList[i].item.money;
+					}
 				}
-				//计算优惠金额
-                axios.get(`/cart/preferential.do`).then(response=> {
-                    this.preferential = response.data.preferential;
-                    this.totalMoney = this.totalMoney - this.preferential;//最后的总金额
-                })
-            },
-            deleteCheckedCart() {
-                axios.get(`/cart/deleteCheckedCart.do`).then(response=> {
-                    this.findCartList();//加载购物车
-                })
-            },
+
+				axios.get(`/cart/preferential.do`).then( response=>{
+				    this.preferential= response.data.preferential; //优惠金额
+					this.totalMoney =this.totalMoney- this.preferential; //优惠后金额
+				})
+
+			},
+			deleteCheckedCart(){
+		        axios.get(`/cart/deleteCheckedCart.do`).then(response=>{
+		            this.findCartList();
+				} )
+			}
 		}
 	});
+
+
+
 </script>
+
+
 </body>
 
 </html>
